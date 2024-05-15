@@ -21,6 +21,9 @@ def make_frameset_data(dataset_config, split='train', frm_list=None):
     elif dataset_config.frameset_type == 'instant_avatar':
         from .instant_avatar_reader import InstantAvatarDataset
         frameset = InstantAvatarDataset(dataset_config, split=split, frm_list=frm_list)
+    elif dataset_config.frameset_type == 'instant_avatar_smplx':
+        from .instant_avatar_smplx import InstantAvatarSmplxDataset
+        frameset = InstantAvatarSmplxDataset(dataset_config, split=split, frm_list=frm_list)
     else:
         raise NotImplementedError
 

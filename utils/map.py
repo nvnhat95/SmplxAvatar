@@ -134,7 +134,7 @@ def calc_per_face_Rt(cano_triangles, deform_triangles):
 
     # for X_c in cano
     # X_d = deform_Rt @ cano_Rt.inv() @ X_c
-    return torch.einsum('bij,bjk->bik', deform_Rt, torch.inverse(cano_Rt))
+    return torch.einsum('bij,bjk->bik', deform_Rt, torch.inverse(cano_Rt + torch.rand_like(cano_Rt) / 1e7)) # nhatdm add small noise to avoid error
 
 def calc_per_vert_quaternion(cano_verts, cano_faces, mesh_verts):
     cano_triangles = cano_verts[cano_faces].unsqueeze(dim=0)

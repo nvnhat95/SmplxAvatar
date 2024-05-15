@@ -4,3 +4,6 @@
 [submodule "submodules/diff-gaussian-rasterization"]
 	path = submodules/diff-gaussian-rasterization
 	url = https://github.com/graphdeco-inria/diff-gaussian-rasterization.git
+[submodule "submodules/multi-hmr"]
+	path = submodules/multi-hmr
+	url = https://github.com/nvnhat95/multi-hmr.git

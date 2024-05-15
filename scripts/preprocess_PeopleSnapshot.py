@@ -34,39 +34,39 @@ if __name__ == "__main__":
     os.makedirs(outdir, exist_ok=True)
 
     # load camera
-    camera = load_pkl(dirpath / "camera.pkl")
-    K = np.eye(3)
-    K[0, 0] = camera["camera_f"][0]
-    K[1, 1] = camera["camera_f"][1]
-    K[:2, 2] = camera["camera_c"]
-    dist_coeffs = camera["camera_k"]
+    # camera = load_pkl(dirpath / "camera.pkl")
+    # K = np.eye(3)
+    # K[0, 0] = camera["camera_f"][0]
+    # K[1, 1] = camera["camera_f"][1]
+    # K[:2, 2] = camera["camera_c"]
+    # dist_coeffs = camera["camera_k"]
 
-    H, W = camera["height"], camera["width"]
-    w2c = np.eye(4)
-    w2c[:3, :3] = cv2.Rodrigues(camera["camera_rt"])[0]
-    w2c[:3, 3] = camera["camera_t"]
+    # H, W = camera["height"], camera["width"]
+    # w2c = np.eye(4)
+    # w2c[:3, :3] = cv2.Rodrigues(camera["camera_rt"])[0]
+    # w2c[:3, 3] = camera["camera_t"]
 
-    camera_path = outdir / "cameras.npz"
-    np.savez(str(camera_path), **{
-        "intrinsic": K,
-        "extrinsic": w2c,
-        "height": H,
-        "width": W,
-    })
-    print("Write camera to", camera_path)
-    with open(str(camera_path).replace('.npz', '.json'), 'w') as fp:
-        json.dump({
-            "intrinsic": K.tolist(),
-            "extrinsic": w2c.tolist(),
-            "height": H,
-            "width": W,
-        }, fp)
-    torch.save({
-        "intrinsic": K,
-        "extrinsic": w2c,
-        "height": H,
-        "width": W,
-    }, str(camera_path).replace('.npz', '.pt'))
+    # camera_path = outdir / "cameras.npz"
+    # np.savez(str(camera_path), **{
+    #     "intrinsic": K,
+    #     "extrinsic": w2c,
+    #     "height": H,
+    #     "width": W,
+    # })
+    # print("Write camera to", camera_path)
+    # with open(str(camera_path).replace('.npz', '.json'), 'w') as fp:
+    #     json.dump({
+    #         "intrinsic": K.tolist(),
+    #         "extrinsic": w2c.tolist(),
+    #         "height": H,
+    #         "width": W,
+    #     }, fp)
+    # torch.save({
+    #     "intrinsic": K,
+    #     "extrinsic": w2c,
+    #     "height": H,
+    #     "width": W,
+    # }, str(camera_path).replace('.npz', '.pt'))
 
     # load images
     image_dir = outdir / "images"
@@ -101,17 +101,17 @@ if __name__ == "__main__":
         alpha = cv2.blur(alpha, (3, 3))
         cv2.imwrite(mask_path.replace('.npy', '.png'), alpha)
 
-    smpl_params = load_h5py(dirpath / "reconstructed_poses.hdf5")
-    smpl_params = {
-        "betas": np.asarray(smpl_params["betas"]).astype(np.float32),
-        "thetas": np.asarray(smpl_params["pose"]).astype(np.float32),
-        "transl": np.asarray(smpl_params["trans"]).astype(np.float32),
-    }
-    np.savez(str(outdir / "poses.npz"), **smpl_params)
+    # smpl_params = load_h5py(dirpath / "reconstructed_poses.hdf5")
+    # smpl_params = {
+    #     "betas": np.asarray(smpl_params["betas"]).astype(np.float32),
+    #     "thetas": np.asarray(smpl_params["pose"]).astype(np.float32),
+    #     "transl": np.asarray(smpl_params["trans"]).astype(np.float32),
+    # }
+    # np.savez(str(outdir / "poses.npz"), **smpl_params)
 
-    smpl_params = {
-        "betas": torch.tensor(smpl_params["betas"]),
-        "thetas": torch.tensor(smpl_params["thetas"]),
-        "transl": torch.tensor(smpl_params["transl"]),
-    }
-    torch.save(smpl_params, str(outdir / "poses.pt"))
+    # smpl_params = {
+    #     "betas": torch.tensor(smpl_params["betas"]),
+    #     "thetas": torch.tensor(smpl_params["thetas"]),
+    #     "transl": torch.tensor(smpl_params["transl"]),
+    # }
+    # torch.save(smpl_params, str(outdir / "poses.pt"))
