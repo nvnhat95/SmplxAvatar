@@ -126,10 +126,10 @@ if __name__ == '__main__':
         loss_normal = cos_loss(render_normal[:, surface_mask], rendered_depth_gradient[:, surface_mask])
         lambda_normal_consistency = 0.05
 
-        loss = loss['loss']
-        loss += loss_normal * lambda_normal_consistency
+        total_loss = loss['loss']
+        total_loss += loss_normal * lambda_normal_consistency
         
-        loss.backward()
+        total_loss.backward()
 
         # densify and prune
         gs_optim.adaptive_density_control(render_pkg, iteration)
@@ -139,8 +139,9 @@ if __name__ == '__main__':
 
         pbar.set_postfix({
             '#gauss': gs_model.num_gauss,
-            'loss': loss['loss'].item(),
+            'loss': total_loss,
             'psnr': loss['psnr_full'],
+            'loss_normal': loss_normal,
         })
 
         # walking on triangles
