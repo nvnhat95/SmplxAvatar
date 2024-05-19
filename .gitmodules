@@ -7,3 +7,6 @@
 [submodule "submodules/multi-hmr"]
 	path = submodules/multi-hmr
 	url = https://github.com/nvnhat95/multi-hmr.git
+[submodule "submodules/gaustudio"]
+	path = submodules/gaustudio
+	url = https://github.com/GAP-LAB-CUHK-SZ/gaustudio.git
