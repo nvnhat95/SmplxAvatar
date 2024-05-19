@@ -65,6 +65,10 @@ class InstantAvatarSmplxDataset(torch.utils.data.Dataset):
             
         K = np.array(contents["intrinsic"])
         c2w = np.linalg.inv(contents["extrinsic"])
+
+        self.cam_intrinsic = torch.tensor(contents["intrinsic"])
+        self.cam_extrinsic = torch.tensor(contents["extrinsic"])
+        
         height = contents["height"]
         width = contents["width"]
         w2c = np.linalg.inv(c2w)
@@ -136,6 +140,8 @@ class InstantAvatarSmplxDataset(torch.utils.data.Dataset):
             'color_frames': color_frames,
             'scene_cameras': scene_cameras,
             'cameras_extent': self.cameras_extent,
+            "cam_intrinsic": self.cam_intrinsic,
+            "cam_extrinsic": self.cam_extrinsic,
         }
 
         # mesh

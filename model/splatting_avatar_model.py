@@ -184,6 +184,7 @@ class SplattingAvatarModel(GaussianBase):
         scales = torch.log(torch.sqrt(dist2))[...,None].repeat(1, 3)
         # nhatdm
         scales[:, 2] = torch.log(torch.tensor(0))
+        
         rots = torch.zeros((fused_point_cloud.shape[0], 4), device="cuda")
         rots[:, 0] = 1
 

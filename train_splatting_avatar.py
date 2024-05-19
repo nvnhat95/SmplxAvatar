@@ -10,6 +10,10 @@ from model.splatting_avatar_model import SplattingAvatarModel
 from model.splatting_avatar_optim import SplattingAvatarOptimizer
 from model.loss_base import run_testing
 from dataset.dataset_helper import make_frameset_data, make_dataloader
+
+from utils.loss_utils import cos_loss
+from utils.graphics_utils import normal_from_depth_image
+
 from model import libcore
 
 if __name__ == '__main__':
@@ -69,6 +73,7 @@ if __name__ == '__main__':
     testing_iterations = config.optim.get('testing_iterations', [total_iteration])
 
     pbar = tqdm(range(1, total_iteration+1))
+    
     for iteration in pbar:        
         gs_optim.update_learning_rate(iteration)
 
@@ -106,7 +111,25 @@ if __name__ == '__main__':
 
         # loss
         loss = gs_optim.collect_loss(gt_image, image, gt_alpha_mask=gt_alpha_mask)
-        loss['loss'].backward()
+
+
+        # nhatdm
+        render_normal = render_pkg["render_normal"]
+        rendered_depth = render_pkg["rendered_depth"][0]
+        rendered_final_opacity = render_pkg["rendered_final_opacity"][0]
+
+        surface_mask = rendered_final_opacity > 0.5
+        
+        rendered_depth_gradient = normal_from_depth_image(rendered_depth, batch["cam_intrinsic"].cuda(), 
+                                                          batch["cam_extrinsic"].cuda())[0].permute(2, 0, 1)
+        
+        loss_normal = cos_loss(render_normal[:, surface_mask], rendered_depth_gradient[:, surface_mask])
+        lambda_normal_consistency = 0.05
+
+        loss = loss['loss']
+        loss += loss_normal * lambda_normal_consistency
+        
+        loss.backward()
 
         # densify and prune
         gs_optim.adaptive_density_control(render_pkg, iteration)
