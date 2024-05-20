@@ -1,4 +1,5 @@
 import os
+import torch
 from pathlib import Path
 from random import randint
 from argparse import ArgumentParser
@@ -112,22 +113,40 @@ if __name__ == '__main__':
         # loss
         loss = gs_optim.collect_loss(gt_image, image, gt_alpha_mask=gt_alpha_mask)
 
+        recon_loss = loss['loss']
+        total_loss = recon_loss
 
         # nhatdm
         render_normal = render_pkg["render_normal"]
         rendered_depth = render_pkg["rendered_depth"][0]
+        rendered_median_depth = render_pkg["rendered_median_depth"][0]
+        rendered_median_weight = render_pkg["rendered_median_depth"][1]
         rendered_final_opacity = render_pkg["rendered_final_opacity"][0]
 
         surface_mask = rendered_final_opacity > 0.5
         
-        rendered_depth_gradient = normal_from_depth_image(rendered_depth, batch["cam_intrinsic"].cuda(), 
-                                                          batch["cam_extrinsic"].cuda())[0].permute(2, 0, 1)
-        
-        loss_normal = cos_loss(render_normal[:, surface_mask], rendered_depth_gradient[:, surface_mask])
-        lambda_normal_consistency = 0.05
+        # normal loss
+        lambda_normal_consistency = 0.05 # hard code
+        if iteration > 7000: # hard code
+            rendered_depth_gradient = normal_from_depth_image(
+                rendered_depth, 
+                batch["cam_intrinsic"].cuda(), 
+                batch["cam_extrinsic"].cuda()
+            )[0].permute(2, 0, 1)        
+            loss_normal = cos_loss(render_normal[:, surface_mask], rendered_depth_gradient[:, surface_mask])
+            total_loss += loss_normal * lambda_normal_consistency
+        else:
+            loss_normal = torch.tensor(0)
 
-        total_loss = loss['loss']
-        total_loss += loss_normal * lambda_normal_consistency
+        # depth_distortion loss
+        lambda_depth_distortion = 0.005
+        if iteration > 3000: # hard code
+            distortion_loss = rendered_median_weight * torch.abs(rendered_depth - rendered_final_opacity * rendered_median_depth)
+            distortion_loss = (distortion_loss * surface_mask).sum() / surface_mask.sum()
+            total_loss += distortion_loss * lambda_depth_distortion
+        else:
+            distortion_loss = torch.tensor(0)
+            
         
         total_loss.backward()
 
@@ -139,9 +158,10 @@ if __name__ == '__main__':
 
         pbar.set_postfix({
             '#gauss': gs_model.num_gauss,
-            'loss': total_loss,
+            'recon_loss': recon_loss.item(),
             'psnr': loss['psnr_full'],
-            'loss_normal': loss_normal,
+            'loss_normal': loss_normal.item(),
+            'depth_distortion': distortion_loss.item(),
         })
 
         # walking on triangles
